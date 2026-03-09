@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta name="title" content="BeatEdit: Symbolic Music Generation as Explicit Editing">
+  <meta name="description" content="Audio samples for the subjective evaluation of BeatEdit.">
+  <meta name="keywords" content="symbolic music, edit-based generation, music editing, BeatEdit">
+  <meta name="robots" content="index, follow">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="BeatEdit: Symbolic Music Generation as Explicit Editing">
+
+  <meta name="citation_title" content="BeatEdit: Symbolic Music Generation as Explicit Editing">
+  <meta name="citation_publication_date" content="2026">
+
+  <title>BeatEdit: Symbolic Music Generation as Explicit Editing</title>
+
+  <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
+  <link rel="stylesheet" href="static/css/bulma.min.css">
+  <link rel="stylesheet" href="static/css/index.css">
+  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- MIDI Player Web Component -->
+  <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.77,npm/@magenta/music@1.23.1/es6/core.js,npm/html-midi-player@1.5.0"></script>
+
+  <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="static/js/index.js"></script>
+
+  <style>
+    /* Task quick-nav buttons */
+    .task-nav-btn { margin: 0.3rem; font-weight: 500; color: white; border: none; }
+    .task-nav-btn.correction-btn { background-color: #2563eb; }
+    .task-nav-btn.completion-btn { background-color: #16a34a; }
+    .task-nav-btn.editing-btn    { background-color: #d97706; }
+
+    /* Sample selector */
+    .sample-selector { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .level-group { display: flex; gap: 0.25rem; align-items: center; }
+    .level-label {
+      font-size: 0.75rem; font-weight: 700; color: var(--text-light);
+      margin-right: 0.25rem; min-width: 28px; text-align: center;
+    }
+    .sample-btn {
+      width: 38px; height: 38px; border-radius: 8px; font-weight: 600;
+      font-size: 0.85rem; cursor: pointer; border: 2px solid var(--border-color);
+      background: var(--background-primary); color: var(--text-secondary);
+      transition: var(--transition); display: flex; align-items: center; justify-content: center;
+    }
+    .sample-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+    .sample-btn.active {
+      background: var(--primary-color); color: #fff;
+      border-color: var(--primary-color); box-shadow: var(--shadow-sm);
+    }
+
+    /* Sample info badges */
+    .sample-info {
+      text-align: center; margin-bottom: 1.5rem;
+      font-size: 0.9rem; color: var(--text-secondary);
+    }
+    .sample-info .badge {
+      display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px;
+      font-weight: 600; font-size: 0.8rem; margin: 0 0.25rem;
+    }
+    .badge-level { background: #dbeafe; color: #1d4ed8; }
+    .badge-edit  { background: #fef3c7; color: #92400e; }
+
+    /* ====== System Card (one per row, same as before) ====== */
+    .system-card {
+      background: var(--background-primary); border: 1px solid var(--border-color);
+      border-radius: var(--border-radius); padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem; transition: var(--transition);
+    }
+    .system-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+    .system-card.reference { border-left: 4px solid #22c55e; background: #f0fdf4; }
+    .system-card.reference:hover { background: #ecfdf5; }
+    .system-card.system-output { border-left: 4px solid var(--primary-color); }
+
+    .system-card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .system-name { font-weight: 700; font-size: 1rem; color: var(--text-primary); }
+
+    .card-actions { display: flex; gap: 0.5rem; align-items: center; }
+    .card-actions a, .card-actions button {
+      font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 6px;
+      text-decoration: none; transition: var(--transition); cursor: pointer;
+      border: 1px solid var(--border-color); background: var(--background-secondary);
+      color: var(--text-secondary); font-weight: 500;
+    }
+    .card-actions a:hover, .card-actions button:hover {
+      background: var(--primary-color); color: #fff; border-color: var(--primary-color);
+    }
+
+    .system-card audio { width: 100%; height: 36px; }
+
+    /* Piano roll image (toggleable) */
+    .piano-roll-wrapper {
+      margin-top: 0.75rem; display: none;
+      border-radius: var(--border-radius); overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+    .piano-roll-wrapper.open { display: block; }
+    .piano-roll-wrapper img {
+      width: 100%; display: block;
+      box-shadow: none !important; border-radius: 0 !important;
+    }
+    .piano-roll-wrapper img:hover { transform: none !important; }
+
+    /* MIDI player wrapper (toggleable) */
+    .midi-player-wrapper {
+      margin-top: 0.75rem; display: none;
+      border-radius: var(--border-radius); overflow: hidden;
+      border: 1px solid var(--border-color); background: var(--background-accent);
+    }
+    .midi-player-wrapper.open { display: block; }
+    midi-player { display: block; width: 100%; --primary-color: #2563eb; }
+    midi-player::part(control-panel) {
+      background: var(--background-accent); border: none; padding: 0.25rem 0.5rem;
+    }
+    midi-visualizer { display: block; overflow-x: auto; }
+    midi-visualizer svg { width: 100%; }
+
+    /* Reference grid (input + GT side-by-side) */
+    .reference-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 0.75rem; margin-bottom: 1.5rem;
+    }
+
+    /* Section divider */
+    .section-label {
+      font-size: 0.8rem; font-weight: 700; color: var(--text-light);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin: 1.5rem 0 0.75rem; padding-bottom: 0.3rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    /* Content container width */
+    .demo-container { max-width: 860px; margin: 0 auto; }
+  </style>
+</head>
+<body>
+
+  <!-- Scroll to Top Button -->
+  <button class="scroll-to-top" onclick="scrollToTop()" title="Scroll to top" aria-label="Scroll to top">
+    <i class="fas fa-chevron-up"></i>
+  </button>
+
+  <main id="main-content">
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">BeatEdit: Symbolic Music Generation as Explicit Editing</h1>
+            <div class="is-size-5 publication-authors">
+              <span class="author-block">Anonymous Authors</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Abstract -->
+  <section class="section hero is-light">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-four-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              Music creation is fundamentally a process of revision, yet mainstream symbolic music generation paradigms produce complete sequences from scratch with no mechanism for selective modification. For text, analogous tasks are routinely solved by edit-based methods that predict explicit per-token operations, yet such methods remain largely unexplored for symbolic music. We trace this absence to a <em>representational barrier</em>: conventional music encodings lack the structural properties that editing demands. The <span class="dnerf">Beat</span> encoding, originally designed for autoregressive generation, naturally satisfies these requirements. Building on this, we propose <span class="dnerf">BeatEdit</span>, the first framework for symbolic music generation based on explicit edit operations, with three complementary mechanisms along an edit-complexity spectrum: per-token sequence tagging for error correction, iterative deletion-insertion-prediction for sequence refinement, and tag-then-fill for structural rewriting. All tasks share a single encoding and pre-trained backbone, with music-specific adaptations for cascading pitch dependencies and encoding invariant maintenance. Experiments on 192K piano pieces show that <span class="dnerf">Beat</span> encoding substantially improves correction recovery over alternative encodings under the same architecture, and that edit-based methods outperform autoregressive and diffusion baselines while achieving over 300&times; faster inference, enabling real-time interactive editing.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Subjective Evaluation Samples -->
+  <section class="section hero is-small" id="section-subjective">
+    <div class="container samples-container">
+      <h2 class="title is-3 has-text-centered">Subjective Evaluation Samples</h2>
+      <p class="subtitle is-5 has-text-centered" style="margin-bottom: 1rem;">
+        Audio samples used for subjective evaluation experiments
+      </p>
+
+      <!-- Quick Navigation -->
+      <div class="has-text-centered" style="margin-bottom: 2rem;">
+        <a href="#section-correction" class="button is-rounded task-nav-btn correction-btn">Error Correction</a>
+        <a href="#section-completion" class="button is-rounded task-nav-btn completion-btn">Segment Completion</a>
+        <a href="#section-editing" class="button is-rounded task-nav-btn editing-btn">Accompaniment Editing</a>
+      </div>
+
+      <!-- ==================== Error Correction ==================== -->
+      <div class="samples-section" id="section-correction">
+        <h3 class="samples-section-title">Error Correction</h3>
+        <p class="samples-section-desc">Given a corrupted MIDI input, correct the errors to recover the original piece. Evaluated on: MQ, EA.</p>
+        <div class="demo-container">
+          <div class="sample-selector" id="sel-correction"></div>
+          <div class="sample-info" id="info-correction"></div>
+          <div id="content-correction"></div>
+        </div>
+      </div>
+
+      <!-- ==================== Segment Completion ==================== -->
+      <div class="samples-section" id="section-completion">
+        <h3 class="samples-section-title">Segment Completion</h3>
+        <p class="samples-section-desc">Fill in a missing segment (gap) in the middle of a piece while preserving context. Evaluated on: MQ, EA, CP.</p>
+        <div class="demo-container">
+          <div class="sample-selector" id="sel-completion"></div>
+          <div class="sample-info" id="info-completion"></div>
+          <div id="content-completion"></div>
+        </div>
+      </div>
+
+      <!-- ==================== Accompaniment Editing ==================== -->
+      <div class="samples-section" id="section-editing">
+        <h3 class="samples-section-title">Accompaniment Editing</h3>
+        <p class="samples-section-desc">Edit the accompaniment of a piece to match a given melody, while preserving un-edited parts. Evaluated on: MQ, EA, CP.</p>
+        <div class="demo-container">
+          <div class="sample-selector" id="sel-editing"></div>
+          <div class="sample-info" id="info-editing"></div>
+          <div id="content-editing"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  </main>
+
+  <!-- Section Navigation (right sidebar) -->
+  <nav class="section-nav" id="sectionNav">
+    <a href="#" class="section-nav-item" data-section="top">
+      <span>Top</span><span class="section-nav-dot"></span>
+    </a>
+    <a href="#section-correction" class="section-nav-item" data-section="section-correction">
+      <span>Correction</span><span class="section-nav-dot"></span>
+    </a>
+    <a href="#section-completion" class="section-nav-item" data-section="section-completion">
+      <span>Completion</span><span class="section-nav-dot"></span>
+    </a>
+    <a href="#section-editing" class="section-nav-item" data-section="section-editing">
+      <span>Editing</span><span class="section-nav-dot"></span>
+    </a>
+  </nav>
+
+  <!-- Mobile Bottom Navigation -->
+  <nav class="mobile-section-nav" id="mobileNav">
+    <a href="#" class="mobile-nav-item active" data-section="top">
+      <i class="fas fa-home"></i><span>Top</span>
+    </a>
+    <a href="#section-correction" class="mobile-nav-item" data-section="section-correction">
+      <i class="fas fa-pen"></i><span>Correction</span>
+    </a>
+    <a href="#section-completion" class="mobile-nav-item" data-section="section-completion">
+      <i class="fas fa-puzzle-piece"></i><span>Completion</span>
+    </a>
+    <a href="#section-editing" class="mobile-nav-item" data-section="section-editing">
+      <i class="fas fa-edit"></i><span>Editing</span>
+    </a>
+  </nav>
+
+<script>
+// ========== METADATA ==========
+const TASKS = {
+  correction: {
+    input_key: "input", input_label: "Corrupted Input",
+    has_melody: false,
+    systems: [
+      { key: "sys_A", label: "BeatEdit-IterEdit (BEAT-A)" },
+      { key: "sys_B", label: "BeatEdit-SeqTag (BEAT-C)" },
+      { key: "sys_C", label: "REMI + SeqTag" },
+      { key: "sys_D", label: "Diffusion SDEdit r=0.3" },
+      { key: "sys_E", label: "BERT-CMLM" }
+    ],
+    samples: [
+      { num:1, level:"L1", edit_rate:0.0833 },
+      { num:3, level:"L2", edit_rate:0.1562 },
+      { num:5, level:"L3", edit_rate:0.3108 },
+      { num:7, level:"L4", edit_rate:0.5729 },
+      { num:8, level:"L4", edit_rate:0.5702 }
+    ]
+  },
+  completion: {
+    input_key: "input_with_gap", input_label: "Input with Gap",
+    has_melody: false,
+    systems: [
+      { key: "sys_A", label: "BeatEdit-TagFill (BEAT-A)" },
+      { key: "sys_B", label: "BeatEdit-IterEdit (BEAT-A)" },
+      { key: "sys_C", label: "Diffusion SDEdit" },
+      { key: "sys_D", label: "LLaMA-Prompt" }
+    ],
+    samples: [
+      { num:1, level:"L1", edit_rate:0.125 },
+      { num:3, level:"L2", edit_rate:0.25 },
+      { num:5, level:"L3", edit_rate:0.3723 },
+      { num:7, level:"L4", edit_rate:0.5 },
+      { num:8, level:"L4", edit_rate:0.5 }
+    ]
+  },
+  editing: {
+    input_key: "input", input_label: "Corrupted Input",
+    has_melody: true,
+    systems: [
+      { key: "sys_A", label: "BeatEdit-IterEdit (BEAT-D)" },
+      { key: "sys_B", label: "BeatEdit-TagFill (BEAT-A)" },
+      { key: "sys_C", label: "BeatEdit-SeqTag (BEAT-C)" },
+      { key: "sys_D", label: "REMI + SeqTag" },
+      { key: "sys_E", label: "Diffusion SDEdit" }
+    ],
+    samples: [
+      { num:1, level:"L1", edit_rate:0.1237 },
+      { num:3, level:"L2", edit_rate:0.2456 },
+      { num:5, level:"L3", edit_rate:0.4783 },
+      { num:7, level:"L4", edit_rate:1.0 },
+      { num:8, level:"L4", edit_rate:1.0 }
+    ]
+  }
+};
+
+const BASE = "demo_content";
+const state = { correction: 1, completion: 1, editing: 1 };
+
+function pad(n) { return String(n).padStart(2, '0'); }
+function pct(v) { return (v * 100).toFixed(1) + '%'; }
+function filePath(task, sn, name, ext) { return `${BASE}/${task}/sample_${pad(sn)}/${name}.${ext}`; }
+
+function toggleEl(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+function makeCard(task, sn, name, label, isRef) {
+  const cls = isRef ? 'system-card reference' : 'system-card system-output';
+  const mp3 = filePath(task, sn, name, 'mp3');
+  const png = filePath(task, sn, name, 'png');
+  const mid = filePath(task, sn, name, 'mid');
+  const uid = `${task}_${sn}_${name}`;
+  return `
+    <div class="${cls}">
+      <div class="system-card-header">
+        <div><span class="system-name">${label}</span></div>
+        <div class="card-actions">
+          <button onclick="toggleEl('pr_${uid}')" title="Toggle piano roll image"><i class="fas fa-image"></i> Piano Roll</button>
+          <button onclick="toggleEl('mp_${uid}')" title="Toggle MIDI player"><i class="fas fa-music"></i> MIDI Player</button>
+          <a href="${mid}" download title="Download MIDI"><i class="fas fa-download"></i> .mid</a>
+        </div>
+      </div>
+      <audio controls preload="none" src="${mp3}"></audio>
+      <div class="piano-roll-wrapper" id="pr_${uid}">
+        <img loading="lazy" src="${png}" alt="${label} piano roll">
+      </div>
+      <div class="midi-player-wrapper" id="mp_${uid}">
+        <midi-visualizer type="piano-roll" id="vis_${uid}" src="${mid}"></midi-visualizer>
+        <midi-player src="${mid}" sound-font visualizer="#vis_${uid}"></midi-player>
+      </div>
+    </div>`;
+}
+
+function renderTask(task) {
+  const meta = TASKS[task];
+  const sn = state[task];
+  const sample = meta.samples.find(s => s.num === sn);
+
+  // Selector
+  const levels = {};
+  meta.samples.forEach(s => { if (!levels[s.level]) levels[s.level] = []; levels[s.level].push(s); });
+  let selHTML = '';
+  for (const lv of ['L1','L2','L3','L4']) {
+    if (!levels[lv]) continue;
+    selHTML += `<div class="level-group"><span class="level-label">${lv}</span>`;
+    levels[lv].forEach(s => {
+      const cls = s.num === sn ? ' active' : '';
+      selHTML += `<div class="sample-btn${cls}" onclick="selectSample('${task}',${s.num})">${s.num}</div>`;
+    });
+    selHTML += '</div>';
+  }
+  document.getElementById(`sel-${task}`).innerHTML = selHTML;
+
+  // Info
+  document.getElementById(`info-${task}`).innerHTML = `
+    Sample ${sn}
+    <span class="badge badge-level">${sample.level}</span>
+    <span class="badge badge-edit">edit rate ${pct(sample.edit_rate)}</span>`;
+
+  // Cards
+  let html = '';
+
+  // Reference section
+  html += '<div class="section-label">Reference</div>';
+  html += makeCard(task, sn, meta.input_key, meta.input_label, true);
+  html += makeCard(task, sn, 'gt', 'Ground Truth', true);
+  if (meta.has_melody) {
+    html += makeCard(task, sn, 'melody_only', 'Original Melody', true);
+  }
+
+  // System outputs
+  html += '<div class="section-label">System Outputs</div>';
+  meta.systems.forEach(sys => {
+    html += makeCard(task, sn, sys.key, sys.label, false);
+  });
+
+  document.getElementById(`content-${task}`).innerHTML = html;
+}
+
+function selectSample(task, sn) {
+  state[task] = sn;
+  renderTask(task);
+}
+
+function renderAll() {
+  renderTask('correction');
+  renderTask('completion');
+  renderTask('editing');
+}
+
+// ========== NAV / SCROLL ==========
+const sections = ['top', 'section-correction', 'section-completion', 'section-editing'];
+
+document.querySelectorAll('.section-nav-item, .mobile-nav-item').forEach(item => {
+  item.addEventListener('click', function(e) {
+    e.preventDefault();
+    const sid = this.getAttribute('data-section');
+    if (sid === 'top') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      const el = document.getElementById(sid);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+
+function updateActiveNav() {
+  const scrollPos = window.scrollY + window.innerHeight / 3;
+  let cur = 'top';
+  sections.forEach(sid => {
+    if (sid === 'top') return;
+    const el = document.getElementById(sid);
+    if (el && el.offsetTop <= scrollPos) cur = sid;
+  });
+  document.querySelectorAll('.section-nav-item').forEach(i => {
+    i.classList.toggle('active', i.getAttribute('data-section') === cur);
+  });
+  document.querySelectorAll('.mobile-nav-item').forEach(i => {
+    i.classList.toggle('active', i.getAttribute('data-section') === cur);
+  });
+  const show = window.pageYOffset > 300;
+  document.getElementById('sectionNav').classList.toggle('visible', show);
+  document.getElementById('mobileNav').classList.toggle('visible', show);
+}
+
+window.addEventListener('scroll', updateActiveNav, { passive: true });
+
+// Audio mutual exclusion
+document.addEventListener('play', function(e) {
+  if (e.target.tagName === 'AUDIO') {
+    document.querySelectorAll('audio').forEach(a => { if (a !== e.target) a.pause(); });
+  }
+}, true);
+
+// ========== INIT ==========
+renderAll();
+</script>
+
+</body>
+</html>
