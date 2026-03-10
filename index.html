@@ -286,10 +286,10 @@ const TASKS = {
       { key: "sys_E", label: "BERT-CMLM" }
     ],
     samples: [
-      { id:"sample_191", level:"L1", edit_rate:0.0385 },
-      { id:"sample_107", level:"L2", edit_rate:0.1538 },
-      { id:"sample_155", level:"L3", edit_rate:0.2537 },
-      { id:"sample_170", level:"L4", edit_rate:0.5729 }
+      { id:"sample_053", level:"L1", edit_rate:0.0625 },
+      { id:"sample_099", level:"L2", edit_rate:0.0833 },
+      { id:"sample_024", level:"L3", edit_rate:0.2738 },
+      { id:"sample_183", level:"L4", edit_rate:0.4464 }
     ]
   },
   completion: {
@@ -302,10 +302,10 @@ const TASKS = {
       { key: "sys_D", label: "LLaMA-Prompt" }
     ],
     samples: [
-      { id:"sample_109", level:"L1", edit_rate:0.1218 },
-      { id:"sample_129", level:"L2", edit_rate:0.2439 },
+      { id:"sample_042", level:"L1", edit_rate:0.1171 },
+      { id:"sample_021", level:"L2", edit_rate:0.2468 },
       { id:"sample_087", level:"L3", edit_rate:0.3684 },
-      { id:"sample_056", level:"L4", edit_rate:0.5000 }
+      { id:"sample_161", level:"L4", edit_rate:0.5000 }
     ]
   },
   editing: {
@@ -319,16 +319,16 @@ const TASKS = {
       { key: "sys_E", label: "Diffusion SDEdit r=0.3" }
     ],
     samples: [
-      { id:"sample_190", level:"L1", edit_rate:0.1319 },
-      { id:"sample_174", level:"L2", edit_rate:0.2517 },
+      { id:"sample_100", level:"L1", edit_rate:0.0897 },
+      { id:"sample_022", level:"L2", edit_rate:0.2353 },
       { id:"sample_024", level:"L3", edit_rate:0.4524 },
-      { id:"sample_049", level:"L4", edit_rate:0.6346 }
+      { id:"sample_018", level:"L4", edit_rate:0.9403 }
     ]
   }
 };
 
 const BASE = "demo_content";
-const state = { correction: "sample_191", completion: "sample_109", editing: "sample_190" };
+const state = { correction: "sample_053", completion: "sample_042", editing: "sample_100" };
 
 function pct(v) { return (v * 100).toFixed(1) + '%'; }
 function filePath(task, sid, name, ext) { return `${BASE}/${task}/${sid}/${name}.${ext}`; }
