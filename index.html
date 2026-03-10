@@ -322,7 +322,7 @@ const TASKS = {
       { id:"sample_190", level:"L1", edit_rate:0.1319 },
       { id:"sample_174", level:"L2", edit_rate:0.2517 },
       { id:"sample_024", level:"L3", edit_rate:0.4524 },
-      { id:"sample_007", level:"L4", edit_rate:0.9781 }
+      { id:"sample_049", level:"L4", edit_rate:0.6346 }
     ]
   }
 };
@@ -377,10 +377,9 @@ function renderTask(task) {
   for (const lv of ['L1','L2','L3','L4']) {
     if (!levels[lv]) continue;
     selHTML += `<div class="level-group"><span class="level-label">${lv}</span>`;
-    levels[lv].forEach(s => {
+    levels[lv].forEach((s, i) => {
       const cls = s.id === sid ? ' active' : '';
-      const shortLabel = s.id.replace('sample_','#');
-      selHTML += `<div class="sample-btn${cls}" onclick="selectSample('${task}','${s.id}')" style="width:auto;padding:0 8px;">${shortLabel}</div>`;
+      selHTML += `<div class="sample-btn${cls}" onclick="selectSample('${task}','${s.id}')">${i+1}</div>`;
     });
     selHTML += '</div>';
   }
