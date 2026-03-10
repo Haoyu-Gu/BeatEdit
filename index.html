@@ -279,75 +279,71 @@ const TASKS = {
     input_key: "input", input_label: "Corrupted Input",
     has_melody: false,
     systems: [
-      { key: "sys_A", label: "BeatEdit-IterEdit (BEAT-A)" },
-      { key: "sys_B", label: "BeatEdit-SeqTag (BEAT-C)" },
+      { key: "sys_A", label: "IterEdit (LevT, BEAT-A)" },
+      { key: "sys_B", label: "SeqTag (GECToR, BEAT-C)" },
       { key: "sys_C", label: "REMI + SeqTag" },
       { key: "sys_D", label: "Diffusion SDEdit r=0.3" },
       { key: "sys_E", label: "BERT-CMLM" }
     ],
     samples: [
-      { num:1, level:"L1", edit_rate:0.0833 },
-      { num:3, level:"L2", edit_rate:0.1562 },
-      { num:5, level:"L3", edit_rate:0.3108 },
-      { num:7, level:"L4", edit_rate:0.5729 },
-      { num:8, level:"L4", edit_rate:0.5702 }
+      { id:"sample_050", level:"L1", edit_rate:0.1094 },
+      { id:"sample_000", level:"L2", edit_rate:0.1168 },
+      { id:"sample_110", level:"L3", edit_rate:0.0130 },
+      { id:"sample_151", level:"L4", edit_rate:0.6610 }
     ]
   },
   completion: {
     input_key: "input_with_gap", input_label: "Input with Gap",
     has_melody: false,
     systems: [
-      { key: "sys_A", label: "BeatEdit-TagFill (BEAT-A)" },
-      { key: "sys_B", label: "BeatEdit-IterEdit (BEAT-A)" },
-      { key: "sys_C", label: "Diffusion SDEdit" },
+      { key: "sys_A", label: "TagFill (FELIX, BEAT-A)" },
+      { key: "sys_B", label: "IterEdit (LevT, BEAT-A)" },
+      { key: "sys_C", label: "Diffusion SDEdit r=0.3" },
       { key: "sys_D", label: "LLaMA-Prompt" }
     ],
     samples: [
-      { num:1, level:"L1", edit_rate:0.125 },
-      { num:3, level:"L2", edit_rate:0.25 },
-      { num:5, level:"L3", edit_rate:0.3723 },
-      { num:7, level:"L4", edit_rate:0.5 },
-      { num:8, level:"L4", edit_rate:0.5 }
+      { id:"sample_109", level:"L1", edit_rate:0.1218 },
+      { id:"sample_164", level:"L2", edit_rate:0.2466 },
+      { id:"sample_083", level:"L3", edit_rate:0.3706 },
+      { id:"sample_121", level:"L4", edit_rate:0.4972 }
     ]
   },
   editing: {
     input_key: "input", input_label: "Corrupted Input",
     has_melody: true,
     systems: [
-      { key: "sys_A", label: "BeatEdit-IterEdit (BEAT-D)" },
-      { key: "sys_B", label: "BeatEdit-TagFill (BEAT-A)" },
-      { key: "sys_C", label: "BeatEdit-SeqTag (BEAT-C)" },
+      { key: "sys_A", label: "IterEdit (LevT, BEAT-D)" },
+      { key: "sys_B", label: "TagFill (FELIX, BEAT-A)" },
+      { key: "sys_C", label: "SeqTag (GECToR, BEAT-C)" },
       { key: "sys_D", label: "REMI + SeqTag" },
-      { key: "sys_E", label: "Diffusion SDEdit" }
+      { key: "sys_E", label: "Diffusion SDEdit r=0.3" }
     ],
     samples: [
-      { num:1, level:"L1", edit_rate:0.1237 },
-      { num:3, level:"L2", edit_rate:0.2456 },
-      { num:5, level:"L3", edit_rate:0.4783 },
-      { num:7, level:"L4", edit_rate:1.0 },
-      { num:8, level:"L4", edit_rate:1.0 }
+      { id:"sample_199", level:"L1", edit_rate:0.0822 },
+      { id:"sample_027", level:"L2", edit_rate:0.3110 },
+      { id:"sample_188", level:"L3", edit_rate:0.5667 },
+      { id:"sample_095", level:"L4", edit_rate:1.0 }
     ]
   }
 };
 
 const BASE = "demo_content";
-const state = { correction: 1, completion: 1, editing: 1 };
+const state = { correction: "sample_050", completion: "sample_109", editing: "sample_199" };
 
-function pad(n) { return String(n).padStart(2, '0'); }
 function pct(v) { return (v * 100).toFixed(1) + '%'; }
-function filePath(task, sn, name, ext) { return `${BASE}/${task}/sample_${pad(sn)}/${name}.${ext}`; }
+function filePath(task, sid, name, ext) { return `${BASE}/${task}/${sid}/${name}.${ext}`; }
 
 function toggleEl(id) {
   const el = document.getElementById(id);
   if (el) el.classList.toggle('open');
 }
 
-function makeCard(task, sn, name, label, isRef) {
+function makeCard(task, sid, name, label, isRef) {
   const cls = isRef ? 'system-card reference' : 'system-card system-output';
-  const mp3 = filePath(task, sn, name, 'mp3');
-  const png = filePath(task, sn, name, 'png');
-  const mid = filePath(task, sn, name, 'mid');
-  const uid = `${task}_${sn}_${name}`;
+  const mp3 = filePath(task, sid, name, 'mp3');
+  const png = filePath(task, sid, name, 'png');
+  const mid = filePath(task, sid, name, 'mid');
+  const uid = `${task}_${sid}_${name}`;
   return `
     <div class="${cls}">
       <div class="system-card-header">
@@ -371,10 +367,10 @@ function makeCard(task, sn, name, label, isRef) {
 
 function renderTask(task) {
   const meta = TASKS[task];
-  const sn = state[task];
-  const sample = meta.samples.find(s => s.num === sn);
+  const sid = state[task];
+  const sample = meta.samples.find(s => s.id === sid);
 
-  // Selector
+  // Selector grouped by level
   const levels = {};
   meta.samples.forEach(s => { if (!levels[s.level]) levels[s.level] = []; levels[s.level].push(s); });
   let selHTML = '';
@@ -382,8 +378,9 @@ function renderTask(task) {
     if (!levels[lv]) continue;
     selHTML += `<div class="level-group"><span class="level-label">${lv}</span>`;
     levels[lv].forEach(s => {
-      const cls = s.num === sn ? ' active' : '';
-      selHTML += `<div class="sample-btn${cls}" onclick="selectSample('${task}',${s.num})">${s.num}</div>`;
+      const cls = s.id === sid ? ' active' : '';
+      const shortLabel = s.id.replace('sample_','#');
+      selHTML += `<div class="sample-btn${cls}" onclick="selectSample('${task}','${s.id}')" style="width:auto;padding:0 8px;">${shortLabel}</div>`;
     });
     selHTML += '</div>';
   }
@@ -391,7 +388,7 @@ function renderTask(task) {
 
   // Info
   document.getElementById(`info-${task}`).innerHTML = `
-    Sample ${sn}
+    ${sid.replace('_',' ')}
     <span class="badge badge-level">${sample.level}</span>
     <span class="badge badge-edit">edit rate ${pct(sample.edit_rate)}</span>`;
 
@@ -400,23 +397,23 @@ function renderTask(task) {
 
   // Reference section
   html += '<div class="section-label">Reference</div>';
-  html += makeCard(task, sn, meta.input_key, meta.input_label, true);
-  html += makeCard(task, sn, 'gt', 'Ground Truth', true);
+  html += makeCard(task, sid, meta.input_key, meta.input_label, true);
+  html += makeCard(task, sid, 'gt', 'Ground Truth', true);
   if (meta.has_melody) {
-    html += makeCard(task, sn, 'melody_only', 'Original Melody', true);
+    html += makeCard(task, sid, 'melody_only', 'Original Melody', true);
   }
 
   // System outputs
   html += '<div class="section-label">System Outputs</div>';
   meta.systems.forEach(sys => {
-    html += makeCard(task, sn, sys.key, sys.label, false);
+    html += makeCard(task, sid, sys.key, sys.label, false);
   });
 
   document.getElementById(`content-${task}`).innerHTML = html;
 }
 
-function selectSample(task, sn) {
-  state[task] = sn;
+function selectSample(task, sid) {
+  state[task] = sid;
   renderTask(task);
 }
 
