@@ -281,15 +281,17 @@ const TASKS = {
     systems: [
       { key: "sys_A", label: "IterEdit (LevT, BEAT-A)" },
       { key: "sys_B", label: "SeqTag (GECToR, BEAT-C)" },
-      { key: "sys_C", label: "REMI + SeqTag" },
+      { key: "sys_C", label: "REMI + SeqTag (REMI-GECToR)" },
       { key: "sys_D", label: "Diffusion SDEdit r=0.3" },
-      { key: "sys_E", label: "BERT-CMLM" }
+      { key: "sys_E", label: "BERT-CMLM" },
+      { key: "sys_F", label: "CPWord + SeqTag (CP-GECToR)" },
+      { key: "sys_G", label: "Structured + SeqTag (Struct-GECToR)" }
     ],
     samples: [
-      { id:"sample_053", level:"L1", edit_rate:0.0625 },
-      { id:"sample_099", level:"L2", edit_rate:0.0833 },
-      { id:"sample_024", level:"L3", edit_rate:0.2738 },
-      { id:"sample_183", level:"L4", edit_rate:0.4464 }
+      { id:"sample_035", level:"L1", edit_rate:0.1321 },
+      { id:"sample_011", level:"L2", edit_rate:0.1231 },
+      { id:"sample_033", level:"L3", edit_rate:0.0 },
+      { id:"sample_015", level:"L4", edit_rate:0.5702 }
     ]
   },
   completion: {
@@ -302,10 +304,10 @@ const TASKS = {
       { key: "sys_D", label: "LLaMA-Prompt" }
     ],
     samples: [
-      { id:"sample_042", level:"L1", edit_rate:0.1171 },
-      { id:"sample_021", level:"L2", edit_rate:0.2468 },
-      { id:"sample_087", level:"L3", edit_rate:0.3684 },
-      { id:"sample_161", level:"L4", edit_rate:0.5000 }
+      { id:"sample_009", level:"L1", edit_rate:0.1226 },
+      { id:"sample_043", level:"L2", edit_rate:0.2462 },
+      { id:"sample_024", level:"L3", edit_rate:0.369 },
+      { id:"sample_018", level:"L4", edit_rate:0.4925 }
     ]
   },
   editing: {
@@ -315,20 +317,22 @@ const TASKS = {
       { key: "sys_A", label: "IterEdit (LevT, BEAT-D)" },
       { key: "sys_B", label: "TagFill (FELIX, BEAT-D)" },
       { key: "sys_C", label: "SeqTag (GECToR, BEAT-C)" },
-      { key: "sys_D", label: "REMI + SeqTag" },
-      { key: "sys_E", label: "Diffusion SDEdit r=0.3" }
+      { key: "sys_D", label: "REMI + SeqTag (REMI-GECToR)" },
+      { key: "sys_E", label: "Diffusion SDEdit r=0.3" },
+      { key: "sys_F", label: "CPWord + SeqTag (CP-GECToR)" },
+      { key: "sys_G", label: "Structured + SeqTag (Struct-GECToR)" }
     ],
     samples: [
-      { id:"sample_100", level:"L1", edit_rate:0.0897 },
-      { id:"sample_022", level:"L2", edit_rate:0.2353 },
-      { id:"sample_127", level:"L3", edit_rate:0.4957 },
-      { id:"sample_018", level:"L4", edit_rate:0.9403 }
+      { id:"sample_035", level:"L1", edit_rate:0.1887 },
+      { id:"sample_028", level:"L2", edit_rate:0.2781 },
+      { id:"sample_032", level:"L3", edit_rate:0.5765 },
+      { id:"sample_049", level:"L4", edit_rate:0.6346 }
     ]
   }
 };
 
 const BASE = "demo_content";
-const state = { correction: "sample_053", completion: "sample_042", editing: "sample_100" };
+const state = { correction: "sample_035", completion: "sample_009", editing: "sample_035" };
 
 function pct(v) { return (v * 100).toFixed(1) + '%'; }
 function filePath(task, sid, name, ext) { return `${BASE}/${task}/${sid}/${name}.${ext}`; }
