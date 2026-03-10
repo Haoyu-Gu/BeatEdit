@@ -286,26 +286,26 @@ const TASKS = {
       { key: "sys_E", label: "BERT-CMLM" }
     ],
     samples: [
-      { id:"sample_050", level:"L1", edit_rate:0.1094 },
-      { id:"sample_000", level:"L2", edit_rate:0.1168 },
-      { id:"sample_110", level:"L3", edit_rate:0.0130 },
-      { id:"sample_151", level:"L4", edit_rate:0.6610 }
+      { id:"sample_191", level:"L1", edit_rate:0.0385 },
+      { id:"sample_107", level:"L2", edit_rate:0.1538 },
+      { id:"sample_155", level:"L3", edit_rate:0.2537 },
+      { id:"sample_170", level:"L4", edit_rate:0.5729 }
     ]
   },
   completion: {
     input_key: "input_with_gap", input_label: "Input with Gap",
     has_melody: false,
     systems: [
-      { key: "sys_A", label: "TagFill (FELIX, BEAT-A)" },
+      { key: "sys_A", label: "TagFill (FELIX, BEAT-D)" },
       { key: "sys_B", label: "IterEdit (LevT, BEAT-A)" },
       { key: "sys_C", label: "Diffusion SDEdit r=0.3" },
       { key: "sys_D", label: "LLaMA-Prompt" }
     ],
     samples: [
       { id:"sample_109", level:"L1", edit_rate:0.1218 },
-      { id:"sample_164", level:"L2", edit_rate:0.2466 },
-      { id:"sample_083", level:"L3", edit_rate:0.3706 },
-      { id:"sample_121", level:"L4", edit_rate:0.4972 }
+      { id:"sample_129", level:"L2", edit_rate:0.2439 },
+      { id:"sample_087", level:"L3", edit_rate:0.3684 },
+      { id:"sample_056", level:"L4", edit_rate:0.5000 }
     ]
   },
   editing: {
@@ -313,22 +313,22 @@ const TASKS = {
     has_melody: true,
     systems: [
       { key: "sys_A", label: "IterEdit (LevT, BEAT-D)" },
-      { key: "sys_B", label: "TagFill (FELIX, BEAT-A)" },
+      { key: "sys_B", label: "TagFill (FELIX, BEAT-D)" },
       { key: "sys_C", label: "SeqTag (GECToR, BEAT-C)" },
       { key: "sys_D", label: "REMI + SeqTag" },
       { key: "sys_E", label: "Diffusion SDEdit r=0.3" }
     ],
     samples: [
-      { id:"sample_199", level:"L1", edit_rate:0.0822 },
-      { id:"sample_027", level:"L2", edit_rate:0.3110 },
-      { id:"sample_188", level:"L3", edit_rate:0.5667 },
-      { id:"sample_095", level:"L4", edit_rate:1.0 }
+      { id:"sample_190", level:"L1", edit_rate:0.1319 },
+      { id:"sample_174", level:"L2", edit_rate:0.2517 },
+      { id:"sample_024", level:"L3", edit_rate:0.4524 },
+      { id:"sample_007", level:"L4", edit_rate:0.9781 }
     ]
   }
 };
 
 const BASE = "demo_content";
-const state = { correction: "sample_050", completion: "sample_109", editing: "sample_199" };
+const state = { correction: "sample_191", completion: "sample_109", editing: "sample_190" };
 
 function pct(v) { return (v * 100).toFixed(1) + '%'; }
 function filePath(task, sid, name, ext) { return `${BASE}/${task}/${sid}/${name}.${ext}`; }
