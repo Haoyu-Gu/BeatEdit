@@ -288,10 +288,14 @@ const TASKS = {
       { key: "sys_G", label: "Structured + SeqTag (Struct-GECToR)" }
     ],
     samples: [
-      { id:"sample_006", level:"L1", edit_rate:0.1042 },
-      { id:"sample_012", level:"L2", edit_rate:0.1616 },
-      { id:"sample_025", level:"L3", edit_rate:0.3231 },
-      { id:"sample_015", level:"L4", edit_rate:0.5702 }
+      { id:"sample_037", level:"L1", edit_rate:0.0882 },
+      { id:"sample_041", level:"L1", edit_rate:0.1094 },
+      { id:"sample_008", level:"L2", edit_rate:0.1466 },
+      { id:"sample_023", level:"L2", edit_rate:0.1727 },
+      { id:"sample_045", level:"L3", edit_rate:0.3095 },
+      { id:"sample_032", level:"L3", edit_rate:0.3412 },
+      { id:"sample_038", level:"L4", edit_rate:0.5 },
+      { id:"sample_036", level:"L4", edit_rate:0.5784 }
     ]
   },
   completion: {
@@ -304,10 +308,14 @@ const TASKS = {
       { key: "sys_D", label: "LLaMA-Prompt" }
     ],
     samples: [
-      { id:"sample_037", level:"L1", edit_rate:0.125 },
-      { id:"sample_002", level:"L2", edit_rate:0.25 },
-      { id:"sample_025", level:"L3", edit_rate:0.3692 },
-      { id:"sample_036", level:"L4", edit_rate:0.5 }
+      { id:"sample_006", level:"L1", edit_rate:0.125 },
+      { id:"sample_041", level:"L1", edit_rate:0.125 },
+      { id:"sample_004", level:"L2", edit_rate:0.2478 },
+      { id:"sample_022", level:"L2", edit_rate:0.25 },
+      { id:"sample_045", level:"L3", edit_rate:0.369 },
+      { id:"sample_014", level:"L3", edit_rate:0.3731 },
+      { id:"sample_015", level:"L4", edit_rate:0.5 },
+      { id:"sample_038", level:"L4", edit_rate:0.5 }
     ]
   },
   editing: {
@@ -323,16 +331,18 @@ const TASKS = {
       { key: "sys_G", label: "Structured + SeqTag (Struct-GECToR)" }
     ],
     samples: [
-      { id:"sample_006", level:"L1", edit_rate:0.125 },
-      { id:"sample_016", level:"L2", edit_rate:0.2396 },
-      { id:"sample_025", level:"L3", edit_rate:0.4615 },
-      { id:"sample_018", level:"L4", edit_rate:0.9403 }
+      { id:"sample_041", level:"L1", edit_rate:0.1094 },
+      { id:"sample_037", level:"L1", edit_rate:0.125 },
+      { id:"sample_022", level:"L2", edit_rate:0.2353 },
+      { id:"sample_012", level:"L2", edit_rate:0.2727 },
+      { id:"sample_024", level:"L3", edit_rate:0.4524 },
+      { id:"sample_045", level:"L3", edit_rate:0.5238 }
     ]
   }
 };
 
 const BASE = "demo_content";
-const state = { correction: "sample_006", completion: "sample_037", editing: "sample_006" };
+const state = { correction: "sample_037", completion: "sample_006", editing: "sample_041" };
 
 function pct(v) { return (v * 100).toFixed(1) + '%'; }
 function filePath(task, sid, name, ext) { return `${BASE}/${task}/${sid}/${name}.${ext}`; }
