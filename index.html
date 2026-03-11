@@ -203,7 +203,7 @@
 
       <!-- ==================== Error Correction ==================== -->
       <div class="samples-section" id="section-correction">
-        <h3 class="samples-section-title">Error Correction</h3>
+        <h2 class="title is-3 has-text-centered">Error Correction</h2>
         <p class="samples-section-desc">Given a corrupted MIDI input, correct the errors to recover the original piece. Evaluated on: MQ, EA.</p>
         <div class="demo-container">
           <div class="sample-selector" id="sel-correction"></div>
@@ -214,7 +214,7 @@
 
       <!-- ==================== Segment Completion ==================== -->
       <div class="samples-section" id="section-completion">
-        <h3 class="samples-section-title">Segment Completion</h3>
+        <h2 class="title is-3 has-text-centered">Segment Completion</h2>
         <p class="samples-section-desc">Fill in a missing segment (gap) in the middle of a piece while preserving context. Evaluated on: MQ, EA, CP.</p>
         <div class="demo-container">
           <div class="sample-selector" id="sel-completion"></div>
@@ -225,7 +225,7 @@
 
       <!-- ==================== Accompaniment Editing ==================== -->
       <div class="samples-section" id="section-editing">
-        <h3 class="samples-section-title">Accompaniment Editing</h3>
+        <h2 class="title is-3 has-text-centered">Accompaniment Editing</h2>
         <p class="samples-section-desc">Edit the accompaniment of a piece to match a given melody, while preserving un-edited parts. Evaluated on: MQ, EA, CP.</p>
         <div class="demo-container">
           <div class="sample-selector" id="sel-editing"></div>
@@ -288,34 +288,31 @@ const TASKS = {
       { key: "sys_G", label: "Structured + SeqTag (Struct-GECToR)" }
     ],
     samples: [
-      { id:"sample_009", level:"L1", edit_rate:0.0774 },
-      { id:"sample_006", level:"L1", edit_rate:0.1042 },
-      { id:"sample_043", level:"L2", edit_rate:0.1385 },
-      { id:"sample_012", level:"L2", edit_rate:0.1616 },
-      { id:"sample_045", level:"L3", edit_rate:0.3095 },
-      { id:"sample_017", level:"L3", edit_rate:0.3667 },
-      { id:"sample_015", level:"L4", edit_rate:0.5702 },
-      { id:"sample_038", level:"L4", edit_rate:0.5 }
+      { id:"sample_009" },
+      { id:"sample_006" },
+      { id:"sample_043" },
+      { id:"sample_012" },
+      { id:"sample_045" },
+      { id:"sample_017" },
+      { id:"sample_015" },
+      { id:"sample_038" }
     ]
   },
   completion: {
     input_key: "input_with_gap", input_label: "Input with Gap",
     has_melody: false,
     systems: [
-      { key: "sys_A", label: "TagFill (FELIX, BEAT-D)" },
+      { key: "sys_A", label: "TagFill (FELIX, BEAT-A)" },
       { key: "sys_B", label: "IterEdit (LevT, BEAT-A)" },
-      { key: "sys_C", label: "Diffusion SDEdit r=0.3" },
-      { key: "sys_D", label: "LLaMA-Selective" }
+      { key: "sys_C", label: "LLaMA-Selective (BEAT-A)" }
     ],
     samples: [
-      { id:"sample_041", level:"L1", edit_rate:0.125 },
-      { id:"sample_035", level:"L1", edit_rate:0.1132 },
-      { id:"sample_043", level:"L2", edit_rate:0.2462 },
-      { id:"sample_012", level:"L2", edit_rate:0.2424 },
-      { id:"sample_034", level:"L3", edit_rate:0.375 },
-      { id:"sample_025", level:"L3", edit_rate:0.3692 },
-      { id:"sample_049", level:"L4", edit_rate:0.5 },
-      { id:"sample_015", level:"L4", edit_rate:0.5 }
+      { id:"sample_006" },
+      { id:"sample_009" },
+      { id:"sample_037" },
+      { id:"sample_031" },
+      { id:"sample_002" },
+      { id:"sample_039" }
     ]
   },
   editing: {
@@ -328,23 +325,23 @@ const TASKS = {
       { key: "sys_D", label: "REMI + SeqTag (REMI-GECToR)" },
       { key: "sys_E", label: "Diffusion SDEdit r=0.3" },
       { key: "sys_F", label: "CPWord + SeqTag (CP-GECToR)" },
-      { key: "sys_G", label: "Structured + SeqTag (Struct-GECToR)" }
+      { key: "sys_G", label: "Structured + SeqTag (Struct-GECToR)" },
+      { key: "sys_H", label: "LLaMA-Selective (BEAT-A)" }
     ],
     samples: [
-      { id:"sample_009", level:"L1", edit_rate:0.0774 },
-      { id:"sample_041", level:"L1", edit_rate:0.1094 },
-      { id:"sample_012", level:"L2", edit_rate:0.2727 },
-      { id:"sample_002", level:"L2", edit_rate:0.2656 },
-      { id:"sample_034", level:"L3", edit_rate:0.4479 },
-      { id:"sample_014", level:"L3", edit_rate:0.6269 }
+      { id:"sample_034" },
+      { id:"sample_014" },
+      { id:"sample_010" },
+      { id:"sample_020" },
+      { id:"sample_032" },
+      { id:"sample_048" }
     ]
   }
 };
 
 const BASE = "demo_content";
-const state = { correction: "sample_009", completion: "sample_041", editing: "sample_009" };
+const state = { correction: "sample_009", completion: "sample_006", editing: "sample_034" };
 
-function pct(v) { return (v * 100).toFixed(1) + '%'; }
 function filePath(task, sid, name, ext) { return `${BASE}/${task}/${sid}/${name}.${ext}`; }
 
 function toggleEl(id) {
@@ -384,26 +381,16 @@ function renderTask(task) {
   const sid = state[task];
   const sample = meta.samples.find(s => s.id === sid);
 
-  // Selector grouped by level
-  const levels = {};
-  meta.samples.forEach(s => { if (!levels[s.level]) levels[s.level] = []; levels[s.level].push(s); });
+  // Selector: flat numbered buttons
   let selHTML = '';
-  for (const lv of ['L1','L2','L3','L4']) {
-    if (!levels[lv]) continue;
-    selHTML += `<div class="level-group"><span class="level-label">${lv}</span>`;
-    levels[lv].forEach((s, i) => {
-      const cls = s.id === sid ? ' active' : '';
-      selHTML += `<div class="sample-btn${cls}" onclick="selectSample('${task}','${s.id}')">${i+1}</div>`;
-    });
-    selHTML += '</div>';
-  }
+  meta.samples.forEach((s, i) => {
+    const cls = s.id === sid ? ' active' : '';
+    selHTML += `<div class="sample-btn${cls}" onclick="selectSample('${task}','${s.id}')">${i+1}</div>`;
+  });
   document.getElementById(`sel-${task}`).innerHTML = selHTML;
 
-  // Info
-  document.getElementById(`info-${task}`).innerHTML = `
-    ${sid.replace('_',' ')}
-    <span class="badge badge-level">${sample.level}</span>
-    <span class="badge badge-edit">edit rate ${pct(sample.edit_rate)}</span>`;
+  // Hide info line
+  document.getElementById(`info-${task}`).innerHTML = '';
 
   // Cards
   let html = '';
