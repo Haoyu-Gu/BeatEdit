@@ -83,7 +83,9 @@ body {
 }
 
 .dnerf {
-  font-variant: small-caps;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.02em;
 }
 
 
