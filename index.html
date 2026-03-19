@@ -280,20 +280,20 @@ const TASKS = {
       { key: "sys_D", label: "REMI + SeqTag" },
       { key: "sys_E", label: "CPWord + SeqTag" },
       { key: "sys_F", label: "Structured + SeqTag" },
-      { key: "sys_G", label: "Diffusion SDEdit r=0.3 — BEAT-D" },
+      { key: "sys_G", label: "Diffusion SDEdit — BEAT-D" },
       { key: "sys_H", label: "BERT-CMLM — BEAT-D" },
-      { key: "sys_I", label: "LLaMA-Prompt — BEAT-A" },
-      { key: "sys_J", label: "LLaMA-Selective — BEAT-A" }
+      { key: "sys_J", label: "LLaMA-Selective — BEAT-A" },
+      { key: "sys_L", label: "LLaMA-DetectRegen — BEAT-A" }
     ],
     samples: [
-      { id:"sample_041" },
       { id:"sample_035" },
-      { id:"sample_043" },
-      { id:"sample_008" },
-      { id:"sample_045" },
-      { id:"sample_032" },
-      { id:"sample_015" },
-      { id:"sample_049" }
+      { id:"sample_041" },
+      { id:"sample_022" },
+      { id:"sample_004" },
+      { id:"sample_034" },
+      { id:"sample_017" },
+      { id:"sample_049" },
+      { id:"sample_038" }
     ]
   },
   completion: {
@@ -302,15 +302,14 @@ const TASKS = {
     systems: [
       { key: "sys_A", label: "TagFill — BEAT-A" },
       { key: "sys_B", label: "IterEdit — BEAT-A" },
-      { key: "sys_C", label: "LLaMA-Selective — BEAT-A" }
+      { key: "sys_G", label: "LLaMA-Selective — BEAT-A" }
     ],
     samples: [
       { id:"sample_006" },
-      { id:"sample_009" },
       { id:"sample_037" },
-      { id:"sample_031" },
       { id:"sample_002" },
-      { id:"sample_039" }
+      { id:"sample_031" },
+      { id:"sample_043" }
     ]
   },
   editing: {
@@ -320,24 +319,23 @@ const TASKS = {
       { key: "sys_A", label: "IterEdit — BEAT-D" },
       { key: "sys_B", label: "TagFill — BEAT-D" },
       { key: "sys_C", label: "SeqTag — BEAT-C" },
-      { key: "sys_D", label: "Diffusion SDEdit r=0.3 — BEAT-D" },
+      { key: "sys_D", label: "Diffusion SDEdit — BEAT-D" },
       { key: "sys_E", label: "BERT-CMLM — BEAT-D" },
-      { key: "sys_F", label: "LLaMA-Prompt — BEAT-A" },
       { key: "sys_G", label: "LLaMA-Selective — BEAT-A" }
     ],
     samples: [
+      { id:"sample_039" },
+      { id:"sample_022" },
       { id:"sample_043" },
-      { id:"sample_027" },
-      { id:"sample_002" },
-      { id:"sample_017" },
-      { id:"sample_034" },
-      { id:"sample_032" }
+      { id:"sample_048" },
+      { id:"sample_014" },
+      { id:"sample_020" }
     ]
   }
 };
 
 const BASE = "demo_content";
-const state = { correction: "sample_041", completion: "sample_006", editing: "sample_043" };
+const state = { correction: "sample_035", completion: "sample_006", editing: "sample_039" };
 
 function filePath(task, sid, name, ext) { return `${BASE}/${task}/${sid}/${name}.${ext}`; }
 
