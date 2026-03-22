@@ -192,8 +192,8 @@
       <!-- Quick Navigation -->
       <div class="has-text-centered" style="margin-bottom: 2rem;">
         <a href="#section-correction" class="button is-rounded task-nav-btn correction-btn">Error Correction</a>
-        <a href="#section-completion" class="button is-rounded task-nav-btn completion-btn">Segment Completion</a>
         <a href="#section-editing" class="button is-rounded task-nav-btn editing-btn">Accompaniment Editing</a>
+        <a href="#section-completion" class="button is-rounded task-nav-btn completion-btn">Segment Completion</a>
       </div>
 
       <!-- ==================== Error Correction ==================== -->
@@ -207,17 +207,6 @@
         </div>
       </div>
 
-      <!-- ==================== Segment Completion ==================== -->
-      <div class="samples-section" id="section-completion">
-        <h2 class="title is-3 has-text-centered">Segment Completion</h2>
-        <p class="samples-section-desc">Fill in a missing segment (gap) in the middle of a piece while preserving context. Evaluated on: MQ, EA, CP.</p>
-        <div class="demo-container">
-          <div class="sample-selector" id="sel-completion"></div>
-          <div class="sample-info" id="info-completion"></div>
-          <div id="content-completion"></div>
-        </div>
-      </div>
-
       <!-- ==================== Accompaniment Editing ==================== -->
       <div class="samples-section" id="section-editing">
         <h2 class="title is-3 has-text-centered">Accompaniment Editing</h2>
@@ -226,6 +215,17 @@
           <div class="sample-selector" id="sel-editing"></div>
           <div class="sample-info" id="info-editing"></div>
           <div id="content-editing"></div>
+        </div>
+      </div>
+
+      <!-- ==================== Segment Completion ==================== -->
+      <div class="samples-section" id="section-completion">
+        <h2 class="title is-3 has-text-centered">Segment Completion</h2>
+        <p class="samples-section-desc">Fill in a missing segment (gap) in the middle of a piece while preserving context. Evaluated on: MQ, EA, CP.</p>
+        <div class="demo-container">
+          <div class="sample-selector" id="sel-completion"></div>
+          <div class="sample-info" id="info-completion"></div>
+          <div id="content-completion"></div>
         </div>
       </div>
 
@@ -243,11 +243,11 @@
     <a href="#section-correction" class="section-nav-item" data-section="section-correction">
       <span>Correction</span><span class="section-nav-dot"></span>
     </a>
-    <a href="#section-completion" class="section-nav-item" data-section="section-completion">
-      <span>Completion</span><span class="section-nav-dot"></span>
-    </a>
     <a href="#section-editing" class="section-nav-item" data-section="section-editing">
       <span>Editing</span><span class="section-nav-dot"></span>
+    </a>
+    <a href="#section-completion" class="section-nav-item" data-section="section-completion">
+      <span>Completion</span><span class="section-nav-dot"></span>
     </a>
   </nav>
 
@@ -259,11 +259,11 @@
     <a href="#section-correction" class="mobile-nav-item" data-section="section-correction">
       <i class="fas fa-pen"></i><span>Correction</span>
     </a>
-    <a href="#section-completion" class="mobile-nav-item" data-section="section-completion">
-      <i class="fas fa-puzzle-piece"></i><span>Completion</span>
-    </a>
     <a href="#section-editing" class="mobile-nav-item" data-section="section-editing">
       <i class="fas fa-edit"></i><span>Editing</span>
+    </a>
+    <a href="#section-completion" class="mobile-nav-item" data-section="section-completion">
+      <i class="fas fa-puzzle-piece"></i><span>Completion</span>
     </a>
   </nav>
 
@@ -415,8 +415,8 @@ function selectSample(task, sid) {
 
 function renderAll() {
   renderTask('correction');
-  renderTask('completion');
   renderTask('editing');
+  renderTask('completion');
 }
 
 // ========== NAV / SCROLL ==========
