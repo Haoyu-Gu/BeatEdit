@@ -1,471 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <meta name="title" content="BeatEdit: Symbolic Music Generation as Explicit Editing">
-  <meta name="description" content="Audio samples for the subjective evaluation of BeatEdit.">
-  <meta name="keywords" content="symbolic music, edit-based generation, music editing, BeatEdit">
-  <meta name="robots" content="index, follow">
-
-  <meta property="og:type" content="article">
-  <meta property="og:title" content="BeatEdit: Symbolic Music Generation as Explicit Editing">
-
-  <meta name="citation_title" content="BeatEdit: Symbolic Music Generation as Explicit Editing">
-  <meta name="citation_publication_date" content="2026">
-
-  <title>BeatEdit: Symbolic Music Generation as Explicit Editing</title>
-
-  <link rel="icon" type="image/x-icon" href="static/images/favicon.ico">
-  <link rel="stylesheet" href="static/css/bulma.min.css">
-  <link rel="stylesheet" href="static/css/index.css">
-  <link rel="stylesheet" href="static/css/bulma-carousel.min.css">
-  <link rel="stylesheet" href="static/css/bulma-slider.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- MIDI Player Web Component -->
-  <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.77,npm/@magenta/music@1.23.1/es6/core.js,npm/html-midi-player@1.5.0"></script>
-
-  <script defer src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script defer src="static/js/index.js"></script>
-
-  <style>
-    /* Task quick-nav buttons */
-    .task-nav-btn { margin: 0.3rem; font-weight: 500; color: white; border: none; }
-    .task-nav-btn.correction-btn { background-color: #2563eb; }
-    .task-nav-btn.completion-btn { background-color: #16a34a; }
-    .task-nav-btn.editing-btn    { background-color: #d97706; }
-
-    /* Sample selector */
-    .sample-selector { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
-    .level-group { display: flex; gap: 0.25rem; align-items: center; }
-    .level-label {
-      font-size: 0.75rem; font-weight: 700; color: var(--text-light);
-      margin-right: 0.25rem; min-width: 28px; text-align: center;
-    }
-    .sample-btn {
-      width: 38px; height: 38px; border-radius: 8px; font-weight: 600;
-      font-size: 0.85rem; cursor: pointer; border: 2px solid var(--border-color);
-      background: var(--background-primary); color: var(--text-secondary);
-      transition: var(--transition); display: flex; align-items: center; justify-content: center;
-    }
-    .sample-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
-    .sample-btn.active {
-      background: var(--primary-color); color: #fff;
-      border-color: var(--primary-color); box-shadow: var(--shadow-sm);
-    }
-
-    /* Sample info badges */
-    .sample-info {
-      text-align: center; margin-bottom: 1.5rem;
-      font-size: 0.9rem; color: var(--text-secondary);
-    }
-    .sample-info .badge {
-      display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px;
-      font-weight: 600; font-size: 0.8rem; margin: 0 0.25rem;
-    }
-    .badge-level { background: #dbeafe; color: #1d4ed8; }
-    .badge-edit  { background: #fef3c7; color: #92400e; }
-
-    /* ====== System Card (one per row, same as before) ====== */
-    .system-card {
-      background: var(--background-primary); border: 1px solid var(--border-color);
-      border-radius: var(--border-radius); padding: 1rem 1.25rem;
-      margin-bottom: 0.75rem; transition: var(--transition);
-    }
-    .system-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-    .system-card.reference { border-left: 4px solid #22c55e; background: #f0fdf4; }
-    .system-card.reference:hover { background: #ecfdf5; }
-    .system-card.system-output { border-left: 4px solid var(--primary-color); }
-
-    .system-card-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;
-    }
-    .system-name { font-weight: 700; font-size: 1rem; color: var(--text-primary); }
-
-    .card-actions { display: flex; gap: 0.5rem; align-items: center; }
-    .card-actions a, .card-actions button {
-      font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 6px;
-      text-decoration: none; transition: var(--transition); cursor: pointer;
-      border: 1px solid var(--border-color); background: var(--background-secondary);
-      color: var(--text-secondary); font-weight: 500;
-    }
-    .card-actions a:hover, .card-actions button:hover {
-      background: var(--primary-color); color: #fff; border-color: var(--primary-color);
-    }
-
-    .system-card audio { width: 100%; height: 36px; }
-
-    /* Piano roll image (toggleable) */
-    .piano-roll-wrapper {
-      margin-top: 0.75rem; display: none;
-      border-radius: var(--border-radius); overflow: hidden;
-      border: 1px solid var(--border-color);
-    }
-    .piano-roll-wrapper.open { display: block; }
-    .piano-roll-wrapper img {
-      width: 100%; display: block;
-      box-shadow: none !important; border-radius: 0 !important;
-    }
-    .piano-roll-wrapper img:hover { transform: none !important; }
-
-    /* MIDI player wrapper (toggleable) */
-    .midi-player-wrapper {
-      margin-top: 0.75rem; display: none;
-      border-radius: var(--border-radius); overflow: hidden;
-      border: 1px solid var(--border-color); background: var(--background-accent);
-    }
-    .midi-player-wrapper.open { display: block; }
-    midi-player { display: block; width: 100%; --primary-color: #2563eb; }
-    midi-player::part(control-panel) {
-      background: var(--background-accent); border: none; padding: 0.25rem 0.5rem;
-    }
-    midi-visualizer { display: block; overflow-x: auto; }
-    midi-visualizer svg { width: 100%; }
-
-    /* Reference grid (input + GT side-by-side) */
-    .reference-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 0.75rem; margin-bottom: 1.5rem;
-    }
-
-    /* Section divider */
-    .section-label {
-      font-size: 0.8rem; font-weight: 700; color: var(--text-light);
-      text-transform: uppercase; letter-spacing: 1px;
-      margin: 1.5rem 0 0.75rem; padding-bottom: 0.3rem;
-      border-bottom: 2px solid var(--border-color);
-    }
-
-    /* Content container width */
-    .demo-container { max-width: 860px; margin: 0 auto; }
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="BeatEdit: symbolic music generation through explicit editing. Listen to error correction, accompaniment editing, and segment completion.">
+<meta property="og:title" content="BeatEdit: Symbolic Music Generation as Explicit Editing">
+<meta name="citation_title" content="BeatEdit: Symbolic Music Generation as Explicit Editing">
+<meta name="citation_publication_date" content="2026"><meta name="theme-color" content="#245ea8">
+<title>BeatEdit — Symbolic Music Generation as Explicit Editing</title>
+<link rel="icon" href="static/images/favicon.ico"><link rel="stylesheet" href="static/css/beatedit.css">
+<script defer src="static/js/beatedit.js"></script>
 </head>
 <body>
-
-  <!-- Scroll to Top Button -->
-  <button class="scroll-to-top" onclick="scrollToTop()" title="Scroll to top" aria-label="Scroll to top">
-    <i class="fas fa-chevron-up"></i>
-  </button>
-
-  <main id="main-content">
-
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="hero-body">
-      <div class="container is-max-desktop">
-        <div class="columns is-centered">
-          <div class="column has-text-centered">
-            <h1 class="title is-1 publication-title">BeatEdit: Symbolic Music Generation as Explicit Editing</h1>
-            <div class="is-size-5 publication-authors">
-              <span class="author-block">Anonymous Authors</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Abstract -->
-  <section class="section hero is-light">
-    <div class="container is-max-desktop">
-      <div class="columns is-centered has-text-centered">
-        <div class="column is-four-fifths">
-          <h2 class="title is-3">Abstract</h2>
-          <div class="content has-text-justified">
-            <p>
-              Music creation is fundamentally a process of revision, yet mainstream symbolic music generation paradigms produce complete sequences from scratch with no mechanism for selective modification. In other modalities, analogous tasks are routinely solved by edit-based methods that predict explicit per-token operations, yet such methods remain largely unexplored for symbolic music. We trace this absence to a <em>representational barrier</em>: conventional music encodings lack the structural properties that editing demands. The <span class="dnerf">Beat</span> encoding, originally designed for autoregressive generation, naturally satisfies editing requirements. Building on this, we propose <span class="dnerf">BeatEdit</span>, the first framework for symbolic music generation based on explicit edit operations, with three complementary mechanisms along an edit-complexity spectrum: per-token sequence tagging for error correction, tag-then-fill for segment completion, and iterative refinement for accompaniment editing. All these tasks share an encoding and pre-trained backbone, with music-specific adaptations for cascading pitch dependencies and encoding invariant maintenance. Experiments on 192K piano pieces show that <span class="dnerf">Beat</span> encoding substantially improves correction recovery over alternative encodings under the same architecture, and that edit-based methods outperform autoregressive and diffusion baselines while achieving over 300&times; faster inference, enabling real-time interactive editing. Cross-evaluation across methods and tasks reveals three-way complementarity and shows that encoding choice significantly influences method rankings, while per-difficulty analysis reveals that editing methods degrade when tasks demand substantial content regeneration. Preliminary multi-track experiments further confirm generalization beyond the piano domain, establishing it as a general-purpose approach to symbolic music editing.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Subjective Evaluation Samples -->
-  <section class="section hero is-small" id="section-subjective">
-    <div class="container samples-container">
-      <!-- Quick Navigation -->
-      <div class="has-text-centered" style="margin-bottom: 2rem;">
-        <a href="#section-correction" class="button is-rounded task-nav-btn correction-btn">Error Correction</a>
-        <a href="#section-editing" class="button is-rounded task-nav-btn editing-btn">Accompaniment Editing</a>
-        <a href="#section-completion" class="button is-rounded task-nav-btn completion-btn">Segment Completion</a>
-      </div>
-
-      <!-- ==================== Error Correction ==================== -->
-      <div class="samples-section" id="section-correction">
-        <h2 class="title is-3 has-text-centered">Error Correction</h2>
-        <p class="samples-section-desc">Given a corrupted MIDI input, correct the errors to recover the original piece. Evaluated on: MQ, EA.</p>
-        <div class="demo-container">
-          <div class="sample-selector" id="sel-correction"></div>
-          <div class="sample-info" id="info-correction"></div>
-          <div id="content-correction"></div>
-        </div>
-      </div>
-
-      <!-- ==================== Accompaniment Editing ==================== -->
-      <div class="samples-section" id="section-editing">
-        <h2 class="title is-3 has-text-centered">Accompaniment Editing</h2>
-        <p class="samples-section-desc">Edit the accompaniment of a piece to match a given melody, while preserving un-edited parts. Evaluated on: MQ, EA, CP.</p>
-        <div class="demo-container">
-          <div class="sample-selector" id="sel-editing"></div>
-          <div class="sample-info" id="info-editing"></div>
-          <div id="content-editing"></div>
-        </div>
-      </div>
-
-      <!-- ==================== Segment Completion ==================== -->
-      <div class="samples-section" id="section-completion">
-        <h2 class="title is-3 has-text-centered">Segment Completion</h2>
-        <p class="samples-section-desc">Fill in a missing segment (gap) in the middle of a piece while preserving context. Evaluated on: MQ, EA, CP.</p>
-        <div class="demo-container">
-          <div class="sample-selector" id="sel-completion"></div>
-          <div class="sample-info" id="info-completion"></div>
-          <div id="content-completion"></div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-
-  </main>
-
-  <!-- Section Navigation (right sidebar) -->
-  <nav class="section-nav" id="sectionNav">
-    <a href="#" class="section-nav-item" data-section="top">
-      <span>Top</span><span class="section-nav-dot"></span>
-    </a>
-    <a href="#section-correction" class="section-nav-item" data-section="section-correction">
-      <span>Correction</span><span class="section-nav-dot"></span>
-    </a>
-    <a href="#section-editing" class="section-nav-item" data-section="section-editing">
-      <span>Editing</span><span class="section-nav-dot"></span>
-    </a>
-    <a href="#section-completion" class="section-nav-item" data-section="section-completion">
-      <span>Completion</span><span class="section-nav-dot"></span>
-    </a>
-  </nav>
-
-  <!-- Mobile Bottom Navigation -->
-  <nav class="mobile-section-nav" id="mobileNav">
-    <a href="#" class="mobile-nav-item active" data-section="top">
-      <i class="fas fa-home"></i><span>Top</span>
-    </a>
-    <a href="#section-correction" class="mobile-nav-item" data-section="section-correction">
-      <i class="fas fa-pen"></i><span>Correction</span>
-    </a>
-    <a href="#section-editing" class="mobile-nav-item" data-section="section-editing">
-      <i class="fas fa-edit"></i><span>Editing</span>
-    </a>
-    <a href="#section-completion" class="mobile-nav-item" data-section="section-completion">
-      <i class="fas fa-puzzle-piece"></i><span>Completion</span>
-    </a>
-  </nav>
-
-<script>
-// ========== METADATA ==========
-const TASKS = {
-  correction: {
-    input_key: "input", input_label: "Corrupted Input",
-    has_melody: false,
-    systems: [
-      { key: "sys_B", label: "SeqTag — BEAT-C" },
-      { key: "sys_A", label: "IterEdit — BEAT-A" },
-      { key: "sys_C", label: "TagFill — BEAT-A" },
-      { key: "sys_D", label: "REMI + SeqTag" },
-      { key: "sys_E", label: "CPWord + SeqTag" },
-      { key: "sys_F", label: "Structured + SeqTag" },
-      { key: "sys_G", label: "Diffusion SDEdit — BEAT-D" },
-      { key: "sys_H", label: "BERT-CMLM — BEAT-D" },
-      { key: "sys_J", label: "LLaMA-Selective — BEAT-A" },
-      { key: "sys_L", label: "LLaMA-DetectRegen — BEAT-A" }
-    ],
-    samples: [
-      { id:"sample_035" },
-      { id:"sample_041" },
-      { id:"sample_022" },
-      { id:"sample_004" },
-      { id:"sample_034" },
-      { id:"sample_017" },
-      { id:"sample_049" },
-      { id:"sample_038" }
-    ]
-  },
-  completion: {
-    input_key: "input_with_gap", input_label: "Input with Gap",
-    has_melody: false,
-    systems: [
-      { key: "sys_A", label: "TagFill — BEAT-A" },
-      { key: "sys_B", label: "IterEdit — BEAT-A" },
-      { key: "sys_G", label: "LLaMA-Selective — BEAT-A" },
-      { key: "sys_J", label: "Anticipate Music Transformer" }
-    ],
-    samples: [
-      { id:"sample_006" },
-      { id:"sample_037" },
-      { id:"sample_002" },
-      { id:"sample_031" },
-      { id:"sample_043" }
-    ]
-  },
-  editing: {
-    input_key: "input", input_label: "Corrupted Input",
-    has_melody: true,
-    systems: [
-      { key: "sys_A", label: "IterEdit — BEAT-D" },
-      { key: "sys_B", label: "TagFill — BEAT-D" },
-      { key: "sys_C", label: "SeqTag — BEAT-C" },
-      { key: "sys_D", label: "Diffusion SDEdit — BEAT-D" },
-      { key: "sys_E", label: "BERT-CMLM — BEAT-D" },
-      { key: "sys_G", label: "LLaMA-Selective — BEAT-A" }
-    ],
-    samples: [
-      { id:"sample_039" },
-      { id:"sample_022" },
-      { id:"sample_043" },
-      { id:"sample_048" },
-      { id:"sample_014" },
-      { id:"sample_020" }
-    ]
-  }
-};
-
-const BASE = "demo_content";
-const state = { correction: "sample_035", completion: "sample_006", editing: "sample_039" };
-
-function filePath(task, sid, name, ext) { return `${BASE}/${task}/${sid}/${name}.${ext}`; }
-
-function toggleEl(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.toggle('open');
-}
-
-function makeCard(task, sid, name, label, isRef) {
-  const cls = isRef ? 'system-card reference' : 'system-card system-output';
-  const mp3 = filePath(task, sid, name, 'mp3');
-  const png = filePath(task, sid, name, 'png');
-  const mid = filePath(task, sid, name, 'mid');
-  const uid = `${task}_${sid}_${name}`;
-  return `
-    <div class="${cls}">
-      <div class="system-card-header">
-        <div><span class="system-name">${label}</span></div>
-        <div class="card-actions">
-          <button onclick="toggleEl('pr_${uid}')" title="Toggle piano roll image"><i class="fas fa-image"></i> Piano Roll</button>
-          <button onclick="toggleEl('mp_${uid}')" title="Toggle MIDI player"><i class="fas fa-music"></i> MIDI Player</button>
-          <a href="${mid}" download title="Download MIDI"><i class="fas fa-download"></i> .mid</a>
-        </div>
-      </div>
-      <audio controls preload="none" src="${mp3}"></audio>
-      <div class="piano-roll-wrapper" id="pr_${uid}">
-        <img loading="lazy" src="${png}" alt="${label} piano roll">
-      </div>
-      <div class="midi-player-wrapper" id="mp_${uid}">
-        <midi-visualizer type="piano-roll" id="vis_${uid}" src="${mid}"></midi-visualizer>
-        <midi-player src="${mid}" sound-font visualizer="#vis_${uid}"></midi-player>
-      </div>
-    </div>`;
-}
-
-function renderTask(task) {
-  const meta = TASKS[task];
-  const sid = state[task];
-  const sample = meta.samples.find(s => s.id === sid);
-
-  // Selector: flat numbered buttons
-  let selHTML = '';
-  meta.samples.forEach((s, i) => {
-    const cls = s.id === sid ? ' active' : '';
-    selHTML += `<div class="sample-btn${cls}" onclick="selectSample('${task}','${s.id}')">${i+1}</div>`;
-  });
-  document.getElementById(`sel-${task}`).innerHTML = selHTML;
-
-  // Hide info line
-  document.getElementById(`info-${task}`).innerHTML = '';
-
-  // Cards
-  let html = '';
-
-  // Reference section
-  html += '<div class="section-label">Reference</div>';
-  html += makeCard(task, sid, meta.input_key, meta.input_label, true);
-  html += makeCard(task, sid, 'gt', 'Ground Truth', true);
-  if (meta.has_melody) {
-    html += makeCard(task, sid, 'melody_only', 'Original Melody', true);
-  }
-
-  // System outputs
-  html += '<div class="section-label">System Outputs</div>';
-  meta.systems.forEach(sys => {
-    html += makeCard(task, sid, sys.key, sys.label, false);
-  });
-
-  document.getElementById(`content-${task}`).innerHTML = html;
-}
-
-function selectSample(task, sid) {
-  state[task] = sid;
-  renderTask(task);
-}
-
-function renderAll() {
-  renderTask('correction');
-  renderTask('editing');
-  renderTask('completion');
-}
-
-// ========== NAV / SCROLL ==========
-const sections = ['top', 'section-correction', 'section-completion', 'section-editing'];
-
-document.querySelectorAll('.section-nav-item, .mobile-nav-item').forEach(item => {
-  item.addEventListener('click', function(e) {
-    e.preventDefault();
-    const sid = this.getAttribute('data-section');
-    if (sid === 'top') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      const el = document.getElementById(sid);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  });
-});
-
-function updateActiveNav() {
-  const scrollPos = window.scrollY + window.innerHeight / 3;
-  let cur = 'top';
-  sections.forEach(sid => {
-    if (sid === 'top') return;
-    const el = document.getElementById(sid);
-    if (el && el.offsetTop <= scrollPos) cur = sid;
-  });
-  document.querySelectorAll('.section-nav-item').forEach(i => {
-    i.classList.toggle('active', i.getAttribute('data-section') === cur);
-  });
-  document.querySelectorAll('.mobile-nav-item').forEach(i => {
-    i.classList.toggle('active', i.getAttribute('data-section') === cur);
-  });
-  const show = window.pageYOffset > 300;
-  document.getElementById('sectionNav').classList.toggle('visible', show);
-  document.getElementById('mobileNav').classList.toggle('visible', show);
-}
-
-window.addEventListener('scroll', updateActiveNav, { passive: true });
-
-// Audio mutual exclusion
-document.addEventListener('play', function(e) {
-  if (e.target.tagName === 'AUDIO') {
-    document.querySelectorAll('audio').forEach(a => { if (a !== e.target) a.pause(); });
-  }
-}, true);
-
-// ========== INIT ==========
-renderAll();
-</script>
-
-</body>
-</html>
+<a class="skip-link" href="#explore">Skip to audio examples</a>
+<main>
+<header id="top" class="project-header">
+<nav class="project-nav" aria-label="Page sections"><a class="wordmark" href="#top">BeatEdit <span>/ research companion</span></a><div><a href="#explore">Listen & compare</a><a href="#method">Method</a><a href="#resources">Resources</a></div></nav>
+<div class="paper-heading">
+<p class="eyebrow">ACM Multimedia 2026 · Symbolic music</p>
+<h1><span>BeatEdit:</span> Symbolic Music Generation<br class="desktop-break"> as Explicit Editing</h1>
+<div class="authors" aria-label="Authors and affiliation indices">
+<a href="https://haoyu-gu.github.io/">Haoyu Gu<sup>1</sup></a>
+<a href="https://lekai-qian.github.io/">Lekai Qian<sup>1</sup></a>
+<a href="https://orcid.org/0009-0005-6195-0688">Haowu Zhou<sup>1</sup></a>
+<a href="https://drliuqi.github.io/">Qi Liu<sup>1,*</sup></a>
+<a href="https://shuaiwang-nju.github.io/">Shuai Wang<sup>2,*</sup></a>
+</div>
+<div class="affiliations"><p><sup>1</sup> South China University of Technology, Guangzhou, China</p><p><sup>2</sup> Nanjing University, Nanjing, China</p></div>
+<p class="contact-note">* Corresponding authors</p>
+<div class="paper-actions">
+<a class="resource-button primary" href="#explore">Listen & compare <span aria-hidden="true">↓</span></a>
+<a class="resource-button" href="https://arxiv.org/abs/2607.11124" target="_blank" rel="noopener noreferrer">Paper &amp; appendix <span>↗</span></a>
+<a class="resource-button" href="https://github.com/Haoyu-Gu/BeatEdit-code" target="_blank" rel="noopener noreferrer">Code <span>↗</span></a>
+</div></div>
+<div class="research-summary"><span class="summary-label">The idea</span><p>Generate music by editing a draft. A shared BEAT representation supports note correction, accompaniment revision, and segment completion through explicit edit operations.</p><span class="local-badge">Three editing tasks</span></div>
+<details class="abstract" id="abstract"><summary>Read the abstract</summary><div class="abstract-text">
+<p>Music creation is fundamentally a process of revision. Yet symbolic music generation remains dominated by paradigms that produce complete sequences from scratch, with limited support for selective modification. Edit-based methods have proven effective for text transformation tasks, but remain largely unexplored for symbolic music. We trace this absence to the representational level: conventional event-based music encodings lack the structural properties required by explicit music editing.</p>
+<p>In contrast, the BEAT encoding, a beat-grid-anchored representation originally designed for autoregressive generation, possesses structural properties amenable to editing. We propose BeatEdit, the first framework for symbolic music generation based on explicit edit operations, recasting generation as producing new content by editing a draft rather than synthesizing from scratch. BeatEdit comprises three complementary mechanisms along an axis of increasing edit density: per-token sequence tagging for error correction, iterative refinement for accompaniment editing, and tag-then-fill for segment completion.</p>
+<p>All these mechanisms share a single encoding and pre-trained backbone, achieving higher precision and perceptual quality than autoregressive and diffusion methods across all three tasks, while remaining efficient, with single-pass inference completing in under 100 ms. Cross-encoding evaluation further reveals that encoding design substantially influences editing effectiveness, with notable encoding–method interaction effects.</p>
+</div></details>
+</header>
+<div id="explore" class="section-heading"><div><p class="eyebrow">01 / Interactive examples</p><h2>Hear the music. Compare the edits.</h2></div><p>Compare each method on the same excerpt.<br>Scroll through the outputs and press play.</p></div>
+<p class="scope-note">Original recordings and piano rolls from the BeatEdit demo. All 19 examples and comparison systems are retained.</p>
+<section class="workbench" aria-label="Music editing comparison">
+<div class="collection-header">
+<div class="mode-switch task-tabs" role="tablist" aria-label="Editing task">
+<button id="tab-correction" role="tab" aria-selected="true" aria-controls="comparison" data-task="correction">Error correction</button>
+<button id="tab-editing" role="tab" aria-selected="false" aria-controls="comparison" data-task="editing" tabindex="-1">Accompaniment editing</button>
+<button id="tab-completion" role="tab" aria-selected="false" aria-controls="comparison" data-task="completion" tabindex="-1">Segment completion</button>
+</div>
+<div class="sample-picker"><label for="sample-select">Test excerpt</label><button id="previous-sample" aria-label="Previous example">←</button><select id="sample-select"></select><button id="next-sample" aria-label="Next example">→</button></div>
+</div>
+<div id="comparison" role="tabpanel" aria-labelledby="tab-correction">
+<div class="bench-header"><div><h3 id="task-title"></h3><p id="task-description"></p></div></div>
+<div id="reference-cards" class="reference-cards" aria-label="Input and ground truth"></div>
+<div class="card-section-title"><h3>Compare the methods</h3><p>Play a result directly, or hear the input followed by that method.</p></div>
+<div id="method-cards" class="method-cards" aria-label="Method outputs"></div>
+<details id="baseline-disclosure" class="baseline-disclosure"><summary id="baseline-summary">More baselines</summary><div id="baseline-cards" class="method-cards"></div></details>
+<div class="transport"><button id="stop-audio">■ Stop all</button><span class="clock" id="playback-status" role="status" aria-live="polite">Ready to compare</span></div>
+<div class="bench-footnote"><span id="sample-id"></span><span>Original recordings · Same excerpt across methods</span></div>
+<details class="comparison-details selection-rules"><summary>About the comparisons & encoding labels</summary><p>All methods use the same selected example. Ground truth is an observed target, not a generated output. The original demo sample order and labels are unchanged.</p><p><strong>BEAT-A:</strong> absolute pitch, separate tokens. <strong>BEAT-B:</strong> relative pitch, separate tokens. <strong>BEAT-C:</strong> relative pitch, bundled tokens. <strong>BEAT-D:</strong> absolute pitch, bundled tokens.</p><p>Roll colors are the original visualizations, not an edit-operation overlay. MIDI playback is synthesized and can sound different from the recordings.</p></details>
+</div><noscript>Enable JavaScript to browse these recordings.</noscript>
+</section>
+<section id="method" class="method-section">
+<div class="section-heading"><div><p class="eyebrow">02 / Method</p><h2>One representation. Three ways to edit.</h2></div></div>
+<p class="method-intro">Built on <a href="https://arxiv.org/abs/2604.19532" target="_blank" rel="noopener noreferrer">BEAT: Tokenizing and Generating Symbolic Music by Uniform Temporal Steps ↗</a>. BEAT anchors notes to a beat grid, giving local edits a stable structure. Three complementary mechanisms share this encoding and a pre-trained backbone, from sparse corrections to dense completion.</p>
+<figure class="method-figure"><a href="static/images/encoding-pipeline.png" target="_blank" rel="noopener noreferrer" aria-label="Open full-resolution BEAT encoding figure"><img src="static/images/encoding-pipeline.png" loading="lazy" alt="The BEAT encoding pipeline from beat-grid piano roll to rhythm pattern and pitch position tokens."></a><figcaption>BEAT encoding: rhythm patterns and pitch positions form beat-aligned tokens, interleaved with voice markers. Figure from the camera-ready paper.</figcaption></figure>
+<div class="method-explanation">
+<article><span class="step-number">01 / SeqTag</span><h3>Correct local errors</h3><p>Per-token sequence tagging identifies and corrects errors while retaining the surrounding music.</p><a class="mechanism" href="#section-correction">Listen to error correction →</a></article>
+<article><span class="step-number">02 / IterEdit</span><h3>Revise the accompaniment</h3><p>Iterative deletion, insertion, and prediction reshape the accompaniment while preserving the melody.</p><a class="mechanism" href="#section-editing">Listen to accompaniment editing →</a></article>
+<article><span class="step-number">03 / TagFill</span><h3>Complete missing segments</h3><p>A tag-then-fill process allocates the missing content and predicts it using the surrounding context.</p><a class="mechanism" href="#section-completion">Listen to segment completion →</a></article>
+</div>
+<details class="method-comparisons"><summary>Inside IterEdit: pre-training, edit heads, and iterative refinement</summary><figure class="method-figure"><a href="static/images/iteredit-pipeline.png" target="_blank" rel="noopener noreferrer"><img src="static/images/iteredit-pipeline.png" loading="lazy" alt="IterEdit pre-training, joint training of three editing heads, and iterative delete-insert-predict inference."></a><figcaption>From masked-language pre-training to a delete–insert–predict editing loop. Original camera-ready method figure.</figcaption></figure></details>
+</section>
+<section id="resources" class="resources-section">
+<div><p class="eyebrow">03 / Resources</p><h2>Explore BeatEdit</h2></div>
+<div class="resource-grid">
+<a href="https://arxiv.org/abs/2607.11124" target="_blank" rel="noopener noreferrer"><strong>Paper &amp; appendix <span>↗</span></strong><span>ACM Multimedia 2026 · Full text and supplementary material</span></a>
+<a href="https://github.com/Haoyu-Gu/BeatEdit-code" target="_blank" rel="noopener noreferrer"><strong>Code <span>↗</span></strong><span>Official implementation</span></a>
+<a href="https://arxiv.org/abs/2604.19532" target="_blank" rel="noopener noreferrer"><strong>BEAT encoding <span>↗</span></strong><span>The foundational tokenization paper · ICML 2026</span></a>
+</div>
+<details id="citation" class="citation-section"><summary>Cite BeatEdit</summary><button id="copy-citation">Copy BibTeX</button><pre><code id="bibtex">@inproceedings{gu2026beatedit,
+  title = {BeatEdit: Symbolic Music Generation as Explicit Editing},
+  author = {Gu, Haoyu and Qian, Lekai and Zhou, Haowu and Liu, Qi and Wang, Shuai},
+  booktitle = {Proceedings of the 34th ACM International Conference on Multimedia},
+  year = {2026},
+  doi = {10.1145/3767308.3835589}
+}</code></pre><p class="sr-only" id="copy-status" role="status"></p></details>
+</section>
+<footer><span>BeatEdit · Research companion</span><a href="https://github.com/Haoyu-Gu/BeatEdit" target="_blank" rel="noopener noreferrer">Demo source ↗</a><a href="#top">Back to top ↑</a></footer>
+</main></body></html>
