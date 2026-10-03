@@ -73,10 +73,10 @@ const DESCRIPTIONS = {
 const state={task:'correction',samples:{correction:0,editing:0,completion:0}};
 const $=id=>document.getElementById(id);
 const pathFor=(task,sample,key,ext)=>'demo_content/'+task+'/'+sample+'/'+key+'.'+ext;
-let queuedOutput=null,playbackEpoch=0,midiLoader;
+let queuedOutput=null,playbackEpoch=0,midiLoader,activeAudio=null,activeMidi=null;
 const status=text=>{$('playback-status').textContent=text;};
 function stopAll(){
-  playbackEpoch++;queuedOutput=null;
+  playbackEpoch++;queuedOutput=null;activeAudio=null;activeMidi=null;
   document.querySelectorAll('audio').forEach(audio=>{audio.pause();audio.currentTime=0;});
   document.querySelectorAll('midi-player').forEach(player=>{if(typeof player.stop==='function')player.stop();});
   status('Ready to compare');
@@ -101,11 +101,13 @@ function cardMarkup(key,label,type){
     (isMethod?'<button class="pair-button" data-compare="'+id+'" aria-label="Play input then '+label+'">▶ Input → '+name+'</button>':'')+
     '<details class="card-tools"><summary>MIDI &amp; full-size roll</summary><div class="panel-tools"><a href="'+prefix+'mid" download>Download MIDI ↓</a><button type="button" data-midi="'+prefix+'mid" data-side="'+key+'" aria-expanded="false" aria-controls="midi-'+key+'">Open MIDI player +</button><a href="'+prefix+'png" target="_blank" rel="noopener noreferrer">Expand roll ↗</a></div><div class="midi-container" id="midi-'+key+'"></div></details></article>';
 }
-function renderBaselines(){
+function renderBaselines(reset=false){
   const meta=TASKS[state.task],shown=new Set(primarySystems(meta).map(s=>s.key));
   const other=meta.systems.filter(s=>!shown.has(s.key));
   $('baseline-summary').textContent='More baselines · '+other.length+' comparison'+(other.length===1?'':'s');
-  $('baseline-cards').innerHTML=$('baseline-disclosure').open?other.map(s=>cardMarkup(s.key,s.label,'method')).join(''):'';
+  // Preserve player nodes while the disclosure is closed, including queued outputs.
+  if(reset)$('baseline-cards').replaceChildren();
+  if($('baseline-disclosure').open&&!$('baseline-cards').hasChildNodes())$('baseline-cards').innerHTML=other.map(s=>cardMarkup(s.key,s.label,'method')).join('');
 }
 function renderPanels(){
   stopAll();
@@ -114,7 +116,7 @@ function renderPanels(){
     (meta.has_melody?cardMarkup('melody_only','Original melody','reference'):'');
   $('reference-cards').classList.toggle('three-references',meta.has_melody);
   $('method-cards').innerHTML=primarySystems(meta).map(s=>cardMarkup(s.key,s.label,'method')).join('');
-  renderBaselines();
+  renderBaselines(true);
   $('sample-id').textContent=sample.replace('sample_','Sample ')+' · '+(state.samples[state.task]+1)+' / '+meta.samples.length;
   $('previous-sample').disabled=state.samples[state.task]===0;
   $('next-sample').disabled=state.samples[state.task]===meta.samples.length-1;
@@ -144,34 +146,37 @@ $('sample-select').addEventListener('change',event=>changeSample(Number(event.ta
 $('previous-sample').addEventListener('click',()=>changeSample(Math.max(0,state.samples[state.task]-1)));
 $('next-sample').addEventListener('click',()=>changeSample(Math.min(TASKS[state.task].samples.length-1,state.samples[state.task]+1)));
 $('stop-audio').addEventListener('click',stopAll);
-$('baseline-disclosure').addEventListener('toggle',()=>{stopAll();renderBaselines();});
+$('baseline-disclosure').addEventListener('toggle',()=>renderBaselines());
 document.addEventListener('click',async event=>{
   const button=event.target.closest('[data-compare]');if(!button)return;
   stopAll();const epoch=playbackEpoch;
-  const from='audio-'+TASKS[state.task].input_key,to=button.dataset.compare;
+  const from=$('audio-'+TASKS[state.task].input_key),to=$(button.dataset.compare);
+  if(!from||!to)return;
   queuedOutput={from,to};
-  try{await $(from).play();if(epoch===playbackEpoch)status('Playing input → '+$(to).dataset.label);}
+  try{await from.play();if(epoch===playbackEpoch&&queuedOutput)status('Playing input → '+to.dataset.label);}
   catch{if(epoch===playbackEpoch){queuedOutput=null;status('Press play on the recording to retry.');}}
 });
 document.addEventListener('play',event=>{
-  const audio=event.target;if(audio.tagName!=='AUDIO')return;
+  const audio=event.target;if(audio.tagName!=='AUDIO'||!audio.isConnected)return;
+  if(!queuedOutput||audio!==queuedOutput.from){playbackEpoch++;queuedOutput=null;}
+  activeAudio=audio;activeMidi=null;
   document.querySelectorAll('audio').forEach(other=>{if(other!==audio)other.pause();});
   document.querySelectorAll('midi-player').forEach(player=>{if(typeof player.stop==='function')player.stop();});
-  if(queuedOutput&&audio.id!==queuedOutput.from)queuedOutput=null;
   status('Playing · '+audio.dataset.label);
 },true);
 document.addEventListener('ended',async event=>{
-  const audio=event.target;if(audio.tagName!=='AUDIO')return;
-  if(queuedOutput&&audio.id===queuedOutput.from){
+  const audio=event.target;if(audio.tagName!=='AUDIO'||audio!==activeAudio||!audio.isConnected)return;
+  if(queuedOutput&&audio===queuedOutput.from){
     const to=queuedOutput.to,epoch=playbackEpoch;queuedOutput=null;
-    try{await $(to).play();}catch{if(epoch===playbackEpoch)status('Press play on the output to continue.');}
-  }else status('Playback finished');
+    try{if(to.isConnected)await to.play();else status('Output is no longer available. Select another example.');}catch{if(epoch===playbackEpoch)status('Press play on the output to continue.');}
+  }else{activeAudio=null;status('Playback finished');}
 },true);
 document.addEventListener('pause',event=>{
-  const audio=event.target;if(audio.tagName==='AUDIO'&&audio.isConnected&&!audio.ended&&audio.currentTime>0&&Array.from(document.querySelectorAll('audio')).every(a=>a.paused))status('Paused');
+  const audio=event.target;if(audio.tagName==='AUDIO'&&audio===activeAudio&&!activeMidi&&audio.isConnected&&!audio.ended&&audio.currentTime>0&&audio.paused)status('Paused');
 },true);
 document.addEventListener('error',event=>{
-  if(event.target.tagName==='AUDIO'){queuedOutput=null;status('Recording could not load. Try another example or download the MIDI.');}
+  const audio=event.target;
+  if(audio.tagName==='AUDIO'&&audio.isConnected&&(audio===activeAudio||queuedOutput&&(audio===queuedOutput.from||audio===queuedOutput.to))){playbackEpoch++;queuedOutput=null;status('Recording could not load. Try another example or download the MIDI.');}
 },true);
 function loadMidi(){
   if(customElements.get('midi-player'))return Promise.resolve();
@@ -188,13 +193,14 @@ function loadMidi(){
 document.addEventListener('click',async event=>{
   const button=event.target.closest('[data-midi]');if(!button)return;
   const container=$('midi-'+button.dataset.side);
-  if(button.getAttribute('aria-expanded')==='true'){stopAll();container.replaceChildren();button.setAttribute('aria-expanded','false');button.textContent='Open MIDI player +';return;}
+  if(button.getAttribute('aria-expanded')==='true'){if(activeMidi&&container.contains(activeMidi))stopAll();container.replaceChildren();button.setAttribute('aria-expanded','false');button.textContent='Open MIDI player +';return;}
   button.disabled=true;button.textContent='Loading MIDI player…';
   try{
-    await loadMidi();if(!button.isConnected)return;stopAll();
+    await loadMidi();if(!button.isConnected)return;
     const visualizer=document.createElement('midi-visualizer');visualizer.id='visualizer-'+button.dataset.side;visualizer.setAttribute('type','piano-roll');visualizer.setAttribute('src',button.dataset.midi);
     const player=document.createElement('midi-player');player.setAttribute('src',button.dataset.midi);player.setAttribute('sound-font','');player.setAttribute('visualizer','#'+visualizer.id);
-    player.addEventListener('start',()=>{playbackEpoch++;queuedOutput=null;document.querySelectorAll('audio').forEach(audio=>audio.pause());document.querySelectorAll('midi-player').forEach(other=>{if(other!==player&&typeof other.stop==='function')other.stop();});status('Playing synthesized MIDI');});
+    player.addEventListener('start',()=>{if(!player.isConnected)return;playbackEpoch++;queuedOutput=null;activeAudio=null;activeMidi=player;document.querySelectorAll('audio').forEach(audio=>audio.pause());document.querySelectorAll('midi-player').forEach(other=>{if(other!==player&&typeof other.stop==='function')other.stop();});status('Playing synthesized MIDI');});
+    player.addEventListener('stop',event=>{if(activeMidi!==player)return;activeMidi=null;status(event.detail?.finished?'Playback finished':'Ready to compare');});
     container.replaceChildren(player,visualizer);button.setAttribute('aria-expanded','true');button.textContent='Close MIDI player −';
   }catch{if(button.isConnected){container.textContent='MIDI preview could not load. The MP3 recording and MIDI download remain available.';button.textContent='Retry MIDI player +';}}
   finally{button.disabled=false;}
